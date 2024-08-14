@@ -3,7 +3,7 @@ class Cookie {
         return  `__${pixelFuncName}_`;
     }
 
-    static set(name, value, minutes) {
+    static set(name, value, minutes, path = '/') {
         //localstorage
         var now = new Date()
         var ttl = minutes * 60 * 1000;
