@@ -21,6 +21,9 @@ var JS_ENDPOINT        = process.env.OPIX_JS_ENDPOINT || '/openpixel.js';
 // The current version of your openpixel configuration
 var VERSION            = process.env.OPIX_VERSION || '1';
 
+// Extra utm params that would like to track
+var UTM_EXTRAS    = process.env.OPIX_UTM_EXTRAS || '';
+
 // ------------------------------------------------------------------------//
 
 
@@ -53,6 +56,7 @@ function openpixel() {
   }))
   .pipe(inject.prepend(HEADER_COMMENT))
   .pipe(inject.replace('OPIX_FUNC', PIXEL_FUNC_NAME))
+  .pipe(inject.replace('OPIX_UTM_EXTRAS', UTM_EXTRAS))
   // This will output the non-minified version
   .pipe(gulp.dest(DESTINATION_FOLDER))
   // This will minify and rename to openpixel.min.js
