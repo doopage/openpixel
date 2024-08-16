@@ -4,46 +4,100 @@ class Cookie {
     }
 
     static set(name, value, minutes, path = '/') {
-        //localstorage
         var now = new Date()
         var ttl = minutes * 60 * 1000;
         var item = {
             value: value,
             expiry: now.getTime() + ttl,
         }
-        localStorage.setItem(`${this.prefix()}${name}`, JSON.stringify(item))
+        
+        //sessionstorage
+        if (typeof(sessionStorage) != 'undefined') {
+            try {
+                sessionStorage.setItem(`${this.prefix()}${name}`, JSON.stringify(item))
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        
+        //localstorage
+        if (typeof(localStorage) != 'undefined') {
+            try {
+                localStorage.setItem(`${this.prefix()}${name}`, JSON.stringify(item))
+            } catch(e) {
+                console.error(e);
+            }
+        }
         
         //cookie
         var expires = '';
-        if (Helper.isPresent(minutes)) {
-            var date = new Date();
-            date.setTime(date.getTime() + (minutes * 60 * 1000));
-            expires = `expires=${date.toGMTString()}; `;
+        if (navigator.cookieEnabled) {
+            if (Helper.isPresent(minutes)) {
+                var date = new Date();
+                date.setTime(date.getTime() + (minutes * 60 * 1000));
+                expires = `expires=${date.toGMTString()}; `;
+            }
+            try {
+                document.cookie = `${this.prefix()}${name}=${value}; ${expires}path=${path}; SameSite=Lax`;
+            } catch(e) {
+                console.error(e);
+            }
         }
-        document.cookie = `${this.prefix()}${name}=${value}; ${expires}path=${path}; SameSite=Lax`;
+    }
+    
+    static getSessionStorage(name) {
+        if (typeof(sessionStorage) == 'undefined') {
+            return null;
+        }
+        
+        var name = `${this.prefix()}${name}`;
+        var itemStr = sessionStorage.getItem(name)
+        if (!itemStr) {
+            return null;
+        }
+        try {
+            var item = JSON.parse(itemStr)
+        } catch(e) { //not a json backward compatiblity
+            sessionStorage.removeItem(name)
+            return null;
+        }
+        const now = new Date()
+        if (now.getTime() > item.expiry) {
+            sessionStorage.removeItem(name)
+            return null;
+        }
+        return item.value;
     }
 
     static getLocalStorage(name) {
+        if (typeof(localStorage) == 'undefined') {
+            return null;
+        }
+        
         var name = `${this.prefix()}${name}`;
         var itemStr = localStorage.getItem(name)
         if (!itemStr) {
-            return null
+            return null;
         }
         try {
             var item = JSON.parse(itemStr)
         } catch(e) { //not a json backward compatiblity
             localStorage.removeItem(name)
-            return null
+            return null;
         }
         const now = new Date()
         if (now.getTime() > item.expiry) {
             localStorage.removeItem(name)
-            return null
+            return null;
         }
-        return item.value
+        return item.value;
     }
     
     static getCookie(name) {
+        if (!navigator.cookieEnabled) {
+            return null;
+        }
+        
         var name = `${this.prefix()}${name}=`;
         var ca = document.cookie.split(';');
         for (var i=0; i<ca.length; i++) {
@@ -55,7 +109,7 @@ class Cookie {
     }
     
     static get(name) {
-        return this.getLocalStorage(name) || this.getCookie(name);
+        return this.getSessionStorage(name) || this.getLocalStorage(name) || this.getCookie(name);
     }
 
     static delete(name) {
