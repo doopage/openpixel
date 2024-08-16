@@ -1,4 +1,6 @@
 class Cookie {
+    static memoryStorage = {};
+    
     static prefix() {
         return  `__${pixelFuncName}_`;
     }
@@ -9,6 +11,13 @@ class Cookie {
         var item = {
             value: value,
             expiry: now.getTime() + ttl,
+        }
+        
+        //memorystorage
+        try {
+            this.memoryStorage[name] = value;
+        } catch(e) {
+            console.error(e);
         }
         
         //sessionstorage
@@ -43,6 +52,13 @@ class Cookie {
                 console.error(e);
             }
         }
+    }
+    
+    static getMemoryStorage(name) {
+        if (!this.memoryStorage || typeof(this.memoryStorage) != 'object') {
+            return null;
+        }        
+        return this.memoryStorage[name] || null;
     }
     
     static getSessionStorage(name) {
@@ -109,7 +125,7 @@ class Cookie {
     }
     
     static get(name) {
-        return this.getSessionStorage(name) || this.getLocalStorage(name) || this.getCookie(name);
+        return this.getMemoryStorage(name) || this.getSessionStorage(name) || this.getLocalStorage(name) || this.getCookie(name);
     }
 
     static delete(name) {
