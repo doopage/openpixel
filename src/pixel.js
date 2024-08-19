@@ -15,7 +15,7 @@ class Pixel {
         this.setParam(index, attr[index](index));
       }
     }
-    for (var key of 'OPIX_UTM_EXTRAS'.split(',')) {
+    for (var key of 'OPIX_UTM_EXTRAS'.split(',').filter(Boolean)) {
       this.setParam(key, Cookie.getUtm(key));
     }
   }
